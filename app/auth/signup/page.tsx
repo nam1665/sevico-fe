@@ -2,18 +2,21 @@
 
 import { useState, FormEvent } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth'
+import { useRouter } from 'next/navigation'
 import { FormInput } from '@/components/FormInput'
 import { Button } from '@/components/Button'
+import { buildApiUrl, API_ENDPOINTS } from '@/lib/constants'
+import type { SignupRequest, SignupResponse, ApiError } from '@/types/api'
 
 export default function SignUpPage() {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [dob, setDob] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
-  const { signup } = useAuth()
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -53,7 +56,32 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      await signup({ name, email, password })
+      const signupData: SignupRequest = {
+        email,
+        password,
+        fullname: name,
+        dob: dob || undefined,
+      }
+
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.auth.signup), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signupData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const errorData = data as ApiError
+        throw new Error(errorData.detail || 'Sign up failed')
+      }
+
+      const successData = data as SignupResponse
+      
+      // Redirect to verification page with email
+      router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
       setErrors({
         general: err instanceof Error ? err.message : 'Sign up failed',
@@ -124,6 +152,15 @@ export default function SignUpPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={errors.confirmPassword}
+            disabled={isLoading}
+          />
+
+          <FormInput
+            label="Date of Birth (Optional)"
+            type="date"
+            autoComplete="bday"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
             disabled={isLoading}
           />
 

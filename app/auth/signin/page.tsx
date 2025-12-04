@@ -2,16 +2,21 @@
 
 import { useState, FormEvent } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FormInput } from '@/components/FormInput'
 import { Button } from '@/components/Button'
+import { buildApiUrl, API_ENDPOINTS } from '@/lib/constants'
+import type { SigninRequest, SigninResponse, ApiError } from '@/types/api'
 
 export default function SignInPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const verified = searchParams.get('verified')
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -32,7 +37,35 @@ export default function SignInPage() {
     }
 
     try {
-      await login({ email, password })
+      const signinData: SigninRequest = {
+        email,
+        password,
+      }
+
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.auth.signin), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signinData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const errorData = data as ApiError
+        throw new Error(errorData.detail || 'Sign in failed')
+      }
+
+      const successData = data as SigninResponse
+      
+      // Save token to localStorage
+      localStorage.setItem('access_token', successData.access_token)
+      localStorage.setItem('token_type', successData.token_type)
+      localStorage.setItem('user_email', successData.email)
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed')
     } finally {
@@ -49,6 +82,12 @@ export default function SignInPage() {
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        {verified && (
+          <div className="mb-6 rounded-md bg-green-50 p-4 text-sm text-green-800" role="alert">
+            ✅ Email verified successfully! You can now sign in.
+          </div>
+        )}
+
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           {error && (
             <div
@@ -84,6 +123,15 @@ export default function SignInPage() {
             <Button type="submit" isLoading={isLoading} className="w-full">
               Sign in
             </Button>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Link
+              href="/auth/forgot-password"
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              Forgot password?
+            </Link>
           </div>
         </form>
 

@@ -1,129 +1,161 @@
 'use client'
 
-import { withAuth } from '@/lib/withAuth'
-import { useAuth } from '@/lib/auth'
 import { useEffect, useState } from 'react'
-import { apiGet } from '@/lib/api-client'
-import type { User } from '@/types/auth'
+import { useRouter } from 'next/navigation'
+import { validateToken, removeAccessToken } from '@/lib/auth-utils'
+import type { UserProfile } from '@/types/api'
 
-function DashboardPage() {
-  const { user } = useAuth()
-  const [profile, setProfile] = useState<User | null>(null)
+export default function DashboardPage() {
+  const router = useRouter()
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Fetch user profile from API
     const fetchProfile = async () => {
       try {
-        const data = await apiGet<User>('/api/profile', true)
+        const data = await validateToken()
+        if (!data) {
+          router.push('/auth/signin')
+          return
+        }
         setProfile(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load profile')
+        router.push('/auth/signin')
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchProfile()
-  }, [])
+  }, [router])
+
+  const handleLogout = () => {
+    removeAccessToken()
+    router.push('/auth/signin')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+      </div>
+    )
+  }
+
+  if (error || !profile) {
+    return null
+  }
 
   return (
-    <div className="bg-white px-6 py-24 sm:py-32 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-lg text-gray-600">Welcome back, {user?.name}!</p>
+        {/* Header with Logout */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+            <p className="mt-2 text-lg text-gray-600">Welcome back, {profile.fullname}!</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="rounded-lg bg-red-600 px-4 py-2 text-white font-medium hover:bg-red-700 transition-colors"
+          >
+            Logout
+          </button>
         </div>
 
         {/* Profile Card */}
-        <div className="card mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">Profile Information</h2>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="flex items-center mb-6">
+            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+              {profile.fullname.charAt(0).toUpperCase()}
             </div>
-          ) : error ? (
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-800">{error}</div>
-          ) : (
-            <dl className="divide-y divide-gray-200">
-              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                  {profile?.name}
-                </dd>
-              </div>
-              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">Email address</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                  {profile?.email}
-                </dd>
-              </div>
-              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">User ID</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                  {profile?.id}
-                </dd>
-              </div>
-            </dl>
-          )}
-        </div>
+            <div className="ml-6">
+              <h2 className="text-2xl font-bold text-gray-900">{profile.fullname}</h2>
+              <p className="text-gray-600">{profile.email}</p>
+              {profile.is_verified && (
+                <span className="inline-flex items-center mt-2 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  ✓ Verified
+                </span>
+              )}
+            </div>
+          </div>
 
-        {/* Protected Content Example */}
-        <div className="card">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">Protected Content</h2>
-          <p className="text-gray-600">
-            This is a protected page that requires authentication. Only logged-in users can see
-            this content.
-          </p>
-          <div className="mt-6 rounded-md bg-green-50 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-green-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+          <div className="border-t border-gray-200 pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h3>
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <dt className="text-sm font-medium text-gray-500">Email</dt>
+                <dd className="mt-1 text-sm text-gray-900">{profile.email}</dd>
               </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">Authentication Working!</h3>
-                <div className="mt-2 text-sm text-green-700">
-                  <p>
-                    You're seeing this page because you're authenticated. Try signing out and
-                    accessing this page again - you'll be redirected to the sign in page.
-                  </p>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <dt className="text-sm font-medium text-gray-500">Full Name</dt>
+                <dd className="mt-1 text-sm text-gray-900">{profile.fullname}</dd>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <dt className="text-sm font-medium text-gray-500">Date of Birth</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {new Date(profile.dob).toLocaleDateString()}
+                </dd>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <dt className="text-sm font-medium text-gray-500">Account Status</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {profile.is_verified ? 'Verified' : 'Not Verified'}
+                </dd>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <dt className="text-sm font-medium text-gray-500">Member Since</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {new Date(profile.created_at).toLocaleDateString()}
+                </dd>
+              </div>
+              
+              {profile.avatar && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <dt className="text-sm font-medium text-gray-500">Avatar</dt>
+                  <dd className="mt-1">
+                    <img 
+                      src={profile.avatar} 
+                      alt="Avatar" 
+                      className="h-10 w-10 rounded-full"
+                    />
+                  </dd>
                 </div>
-              </div>
-            </div>
+              )}
+            </dl>
           </div>
         </div>
 
-        {/* Stats Grid Example */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <div className="card">
-            <dt className="text-sm font-medium text-gray-500">Total Projects</dt>
-            <dd className="mt-2 text-3xl font-semibold text-gray-900">12</dd>
-          </div>
-          <div className="card">
-            <dt className="text-sm font-medium text-gray-500">Active Tasks</dt>
-            <dd className="mt-2 text-3xl font-semibold text-gray-900">24</dd>
-          </div>
-          <div className="card">
-            <dt className="text-sm font-medium text-gray-500">Completed</dt>
-            <dd className="mt-2 text-3xl font-semibold text-gray-900">156</dd>
+        {/* Quick Actions */}
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-600 hover:shadow-md transition-all text-left">
+              <div className="text-2xl mb-2">🚀</div>
+              <div className="font-semibold text-gray-900">Start New Project</div>
+              <div className="text-sm text-gray-600">Get a boilerplate template</div>
+            </button>
+            
+            <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-600 hover:shadow-md transition-all text-left">
+              <div className="text-2xl mb-2">📚</div>
+              <div className="font-semibold text-gray-900">View Tutorials</div>
+              <div className="text-sm text-gray-600">Learn to build better</div>
+            </button>
+            
+            <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-600 hover:shadow-md transition-all text-left">
+              <div className="text-2xl mb-2">💬</div>
+              <div className="font-semibold text-gray-900">Get Consulting</div>
+              <div className="text-sm text-gray-600">Talk to an expert</div>
+            </button>
           </div>
         </div>
       </div>
     </div>
   )
 }
-
-// Wrap the component with authentication
-export default withAuth(DashboardPage)

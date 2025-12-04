@@ -1,14 +1,32 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import { useAuth } from '@/lib/auth'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { getAccessToken, removeAccessToken, validateToken } from '@/lib/auth-utils'
+import type { UserProfile } from '@/types/api'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<UserProfile | null>(null)
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (getAccessToken()) {
+        const userData = await validateToken()
+        setUser(userData)
+      }
+    }
+    checkAuth()
+  }, [pathname])
+
+  const handleLogout = () => {
+    removeAccessToken()
+    setUser(null)
+    router.push('/')
+  }
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -59,8 +77,8 @@ export function Navbar() {
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             {user ? (
               <>
-                <span className="text-sm text-gray-700">Hi, {user.name}</span>
-                <button onClick={logout} className="btn-secondary">
+                <span className="text-sm text-gray-700">Hi, {user.fullname}</span>
+                <button onClick={handleLogout} className="btn-secondary">
                   Sign Out
                 </button>
               </>
