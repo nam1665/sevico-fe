@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { Suspense, useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { buildApiUrl, API_ENDPOINTS } from '@/lib/constants'
 import type { VerifyEmailRequest, VerifyEmailResponse, ApiError } from '@/types/api'
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -185,5 +185,13 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-white">Loading...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   )
 }

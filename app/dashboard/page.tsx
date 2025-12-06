@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { validateToken, removeAccessToken } from '@/lib/auth-utils'
@@ -120,10 +121,13 @@ export default function DashboardPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <dt className="text-sm font-medium text-gray-500">Avatar</dt>
                   <dd className="mt-1">
-                    <img 
-                      src={profile.avatar} 
-                      alt="Avatar" 
-                      className="h-10 w-10 rounded-full"
+                    <Image
+                      src={profile.avatar}
+                      alt="Avatar"
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full object-cover"
+                      unoptimized
                     />
                   </dd>
                 </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { Suspense, useState, FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { FormInput } from '@/components/FormInput'
@@ -8,7 +8,7 @@ import { Button } from '@/components/Button'
 import { buildApiUrl, API_ENDPOINTS } from '@/lib/constants'
 import type { SigninRequest, SigninResponse, ApiError } from '@/types/api'
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const verified = searchParams.get('verified')
@@ -157,5 +157,13 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   )
 }

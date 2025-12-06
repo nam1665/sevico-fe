@@ -40,16 +40,17 @@ export async function apiRequest<T>(
     ? endpoint
     : `${process.env.NEXT_PUBLIC_API_URL || ''}${endpoint}`
 
-  const requestHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...headers,
+  // Normalize headers to a Headers object so we can safely set values
+  const requestHeaders = new Headers(headers)
+  if (!requestHeaders.has('Content-Type')) {
+    requestHeaders.set('Content-Type', 'application/json')
   }
 
   // Add auth token if required
   if (requireAuth) {
     const token = getAuthToken()
     if (token) {
-      requestHeaders['Authorization'] = `Bearer ${token}`
+      requestHeaders.set('Authorization', `Bearer ${token}`)
     }
   }
 

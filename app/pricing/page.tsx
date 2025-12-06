@@ -1,23 +1,22 @@
+import * as React from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Pricing - Sevico',
-  description: 'Simple, transparent pricing for Sevico',
+  title: 'Services - Sevico',
+  description: 'Explore Sevico service plans',
 }
 
-export default function PricingPage() {
+export default function ServicesPage() {
   const tiers = [
     {
       name: 'Starter',
       price: '$0',
-      description: 'Perfect for getting started and small projects.',
+      description: 'Basic source code, limited OpenAI token, limited DB usage.',
       features: [
-        'Full source code access',
-        'Authentication system',
-        'Basic components',
-        'Community support',
-        'Regular updates',
+        'Basic source code',
+        'Limited OpenAI token',
+        'Limited database usage',
       ],
       cta: 'Get Started',
       href: '/auth/signup',
@@ -25,15 +24,14 @@ export default function PricingPage() {
     },
     {
       name: 'Pro',
-      price: '$49',
-      description: 'For professional developers and growing teams.',
+      price: '$29',
+      description: 'Full source code, 1 VM, 1 MongoDB instance, limited consultant time, generously OpenAI token.',
       features: [
-        'Everything in Starter',
-        'Premium components',
-        'Advanced examples',
-        'Priority support',
-        'Lifetime updates',
-        'Commercial license',
+        'Full source code',
+        '1 Virtual Machine',
+        '1 MongoDB instance',
+        'Limited consultant time',
+        'Generous OpenAI token',
       ],
       cta: 'Get Pro',
       href: '/auth/signup',
@@ -42,16 +40,13 @@ export default function PricingPage() {
     {
       name: 'Enterprise',
       price: 'Custom',
-      description: 'For large teams with custom requirements.',
+      description: 'Customization, consultant, let’s build together.',
       features: [
-        'Everything in Pro',
-        'Custom development',
-        'Dedicated support',
-        'SLA guarantee',
-        'Team training',
-        'Custom integrations',
+        'Customization',
+        'Consultant included',
+        'Let’s build together',
       ],
-      cta: 'Contact Sales',
+      cta: 'Contact Us',
       href: '/auth/signup',
       featured: false,
     },
@@ -61,13 +56,13 @@ export default function PricingPage() {
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-base font-semibold leading-7 text-primary-600">Pricing</h2>
+          <h2 className="text-base font-semibold leading-7 text-primary-600">Services</h2>
           <p className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Choose the plan that's right for you
+            Choose the service that fits your needs
           </p>
         </div>
         <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-600">
-          Start for free and upgrade as you grow. All plans include the complete source code.
+          Start with the basics or let’s build together. Flexible options for every stage.
         </p>
         <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 xl:gap-x-12">
           {tiers.map((tier) => (
@@ -107,7 +102,7 @@ export default function PricingPage() {
                       tier.featured ? 'text-primary-100' : 'text-gray-600'
                     }`}
                   >
-                    /one-time
+                    /monthly
                   </span>
                 )}
               </p>

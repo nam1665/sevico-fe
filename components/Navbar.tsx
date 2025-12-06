@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { getAccessToken, removeAccessToken, validateToken } from '@/lib/auth-utils'
@@ -42,8 +43,15 @@ export function Navbar() {
         <div className="flex h-16 justify-between">
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
-              <Link href="/" className="text-2xl font-bold text-primary-600">
-                Sevico
+              <Link href="/" className="block">
+                <Image
+                  src="/logo.png"
+                  alt="Sevico Logo"
+                  width={40}
+                  height={40}
+                  priority
+                  className="h-10 w-auto"
+                />
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -171,9 +179,9 @@ export function Navbar() {
           <div className="border-t border-gray-200 pb-3 pt-4">
             {user ? (
               <div className="space-y-1 px-4">
-                <div className="text-base font-medium text-gray-800">{user.name}</div>
+                <div className="text-base font-medium text-gray-800">{user.fullname}</div>
                 <div className="text-sm font-medium text-gray-500">{user.email}</div>
-                <button onClick={logout} className="btn-secondary mt-2 w-full">
+                <button onClick={handleLogout} className="btn-secondary mt-2 w-full">
                   Sign Out
                 </button>
               </div>

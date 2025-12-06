@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import type { User } from '@/types/auth'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/profile
  * 
